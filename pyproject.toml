@@ -1,0 +1,17 @@
+[project]
+name = "simple-deep-rl"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+requires-python = ">=3.12"
+dependencies = [
+    "gymnasium>=1.2.2",
+    "matplotlib>=3.10.7",
+    "numpy>=2.3.5",
+    "pygame>=2.6.1",
+    "scipy>=1.16.3",
+    "tensorboard>=2.20.0",
+    "torch>=2.9.1",
+    "tqdm>=4.67.1",
+    "tyro>=0.9.35",
+]
