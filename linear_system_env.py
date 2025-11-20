@@ -2,7 +2,7 @@ import gymnasium as gym
 from gymnasium import spaces
 import numpy as np
 import matplotlib.pyplot as plt
-from typing import Optional, Tuple, Union, Dict, Any
+from typing import Optional, Tuple, Union, Dict, Any, List
 
 """
 A simple discrete linear dynamical system environment.
@@ -15,9 +15,6 @@ A = [[1, 1], [0, 1]]
 B = [[0], [1]]
 w_k ~ N(0, W)
 
-Reference:
-Recht, B. (2019). "A Tour of Reinforcement Learning: The View from Continuous Control".
-Annual Review of Control, Robotics, and Autonomous Systems.
 """
 class LinearDynamicalSystemEnv(gym.Env):
     metadata = {"render_modes": ["human", "rgb_array"], "render_fps": 30}
@@ -30,12 +27,13 @@ class LinearDynamicalSystemEnv(gym.Env):
         Q: Optional[np.ndarray] = None,
         R: Optional[Union[float, np.ndarray]] = None,
         process_noise_cov: Optional[np.ndarray] = None, 
-        max_state_bound: float = 100.0, 
+        max_state_bound: float = 500.0, 
         discrete_actions: Optional[np.ndarray] = None,
-        max_action: float = 10, 
+        max_action: float = 10, # apply only for continuous action space
         init_state_bound: float = 50,
         goal_threshold: float = 3.0,
-        success_steps: int = 20
+        success_steps: int = 20,
+        render_bound: float = 80.0
     ):
         super().__init__()
         
@@ -50,7 +48,7 @@ class LinearDynamicalSystemEnv(gym.Env):
         
         # Process noise covariance W
         if process_noise_cov is None:
-            self.W = np.eye(2, dtype=np.float32) * 0.0001
+            self.W = np.eye(2, dtype=np.float32) * 0.1
         else:
             self.W = np.array(process_noise_cov, dtype=np.float32)
 
@@ -59,6 +57,7 @@ class LinearDynamicalSystemEnv(gym.Env):
         self.init_state_bound = init_state_bound
         self.goal_threshold = goal_threshold
         self.success_steps = success_steps
+        self.render_bound = render_bound
         self.steps_in_goal = 0
 
         # Define action and observation space
@@ -105,7 +104,7 @@ class LinearDynamicalSystemEnv(gym.Env):
             u = np.array(action, dtype=np.float32)
             
         # Clip action to valid range
-        u = np.clip(u, -self.max_action, self.max_action)
+        # u = np.clip(u, -self.max_action, self.max_action)
         
         # Process noise w_k ~ N(0, W)
         w = self.np_random.multivariate_normal(np.zeros(2), self.W).astype(np.float32)
@@ -163,7 +162,7 @@ class LinearDynamicalSystemEnv(gym.Env):
             plt.ion()
             self.fig, self.ax = plt.subplots()
             # Set limits based on max_state_bound so going off-screen corresponds to termination
-            limit = self.max_state_bound
+            limit = self.render_bound
             self.ax.set_xlim(-limit, limit)
             self.ax.set_ylim(-limit, limit)
             self.ax.set_xlabel("x1")
@@ -189,13 +188,13 @@ class LinearDynamicalSystemEnv(gym.Env):
                 width, height = self.fig.canvas.get_width_height()
                 buffer = self.fig.canvas.buffer_rgba()
                 image = np.asarray(buffer)
-                return image[:, :, :3] # Return RGB, drop Alpha
+                return image[:, :, :3].copy() # Return RGB, drop Alpha
             except AttributeError:
                 # Fallback for older versions or different backends
                 self.fig.canvas.draw()
                 data = np.frombuffer(self.fig.canvas.tostring_rgb(), dtype=np.uint8)
                 data = data.reshape(self.fig.canvas.get_width_height()[::-1] + (3,))
-                return data
+                return data.copy()
 
     def close(self):
         if self.fig:

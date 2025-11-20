@@ -3,6 +3,11 @@ import scipy.linalg
 import gymnasium as gym
 from gymnasium.envs.registration import register
 import time
+import os
+import matplotlib
+
+matplotlib.use('Agg')
+import matplotlib.pyplot as plt
 from typing import Tuple
 
 # Register the environment
@@ -57,23 +62,25 @@ def main():
     
     # Create environment
     # Pass Q and R to ensure the environment uses the same cost function for reward calculation
+    os.makedirs("outputs", exist_ok=True)
     env = gym.make(
         "LinearSystem-v0", 
-        render_mode="human",
+        render_mode="rgb_array",
         A=A,
         B=B,
         Q=Q,
         R=R
     )
 
-    num_episodes = 10
+    num_episodes = 16
     success_count = 0
     episode_rewards = []
+    final_frames = []
 
     for episode in range(num_episodes):
         observation, info = env.reset()
         print(f"\n--- Episode {episode + 1}/{num_episodes} ---")
-        print(f"Initial state: {observation}")
+        # print(f"Initial state: {observation}")
         
         done = False
         truncated = False
@@ -92,23 +99,21 @@ def main():
             observation, reward, done, truncated, info = env.step(u)
             
             total_reward += reward
-            # print(f"Step: {step}, Action: {u}, State: {observation}, Reward: {reward:.4f}")
 
             if info.get("is_success"):
-                print("Reached the goal!")
-                break
+                # print("Reached the goal!")
+                pass
             
-            # Slow down for visualization
-            time.sleep(0.01) # Reduced sleep time for multiple runs
             step += 1
             
-        print(f"Episode finished after {step} steps.")
-        print(f"Total Reward: {total_reward:.4f}")
+        print(f"Episode finished after {step} steps. Total Reward: {total_reward:.4f}")
         
         episode_rewards.append(total_reward)
         
+        final_frames.append(env.render())
+        
         if info.get("is_success"):
-            print("SUCCESS: System stabilized!")
+            # print("SUCCESS: System stabilized!")
             success_count += 1
         elif info.get("out_of_bounds"):
             print("FAILURE: System went out of bounds.")
@@ -118,6 +123,20 @@ def main():
     print(f"Average Reward: {np.mean(episode_rewards):.4f}")
     
     env.close()
+    
+    # Create 4x4 grid of images
+    if len(final_frames) == 16:
+        fig, axes = plt.subplots(4, 4, figsize=(12, 12))
+        for idx, ax in enumerate(axes.flat):
+            ax.imshow(final_frames[idx])
+            ax.axis('off')
+            ax.set_title(f"Ep {idx+1}")
+        
+        plt.tight_layout()
+        plt.savefig("outputs/lqr_eval_grid.png")
+        print("Saved 4x4 evaluation grid to outputs/lqr_eval_grid.png")
+    else:
+        print(f"Expected 16 frames, got {len(final_frames)}")
 
 if __name__ == "__main__":
     main()
