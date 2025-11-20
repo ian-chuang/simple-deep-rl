@@ -1,6 +1,6 @@
 # simple-deep-rl
 
-Minimal reinforcement learning experiments for a custom linear dynamical system environment. The repository contains policy-gradient, PPO, DQN, and LQR baselines along with plotting utilities.
+Minimal reinforcement learning experiments for a custom linear system environment. The repository contains policy-gradient, PPO, DQN, and LQR baselines along with plotting utilities.
 
 ## Prerequisites
 - [uv](https://docs.astral.sh/uv/) for dependency management 
@@ -20,4 +20,4 @@ Minimal reinforcement learning experiments for a custom linear dynamical system 
 	uv run ppo_continuous.py
 	```
 
-Generated artifacts (evaluation grids, logs) are written under the `outputs/` and `runs/` directories.
+Generated plots are written under the `outputs/` 
