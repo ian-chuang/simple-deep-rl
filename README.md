@@ -3,8 +3,7 @@
 Minimal reinforcement learning experiments for a custom linear dynamical system environment. The repository contains policy-gradient, PPO, DQN, and LQR baselines along with plotting utilities.
 
 ## Prerequisites
-- Python 3.12 or newer
-- [uv](https://docs.astral.sh/uv/) for dependency management (pip-compatible alternative). Install with `pip install uv` or your preferred method.
+- [uv](https://docs.astral.sh/uv/) for dependency management 
 
 ## Setup
 1. **Clone the repository**
